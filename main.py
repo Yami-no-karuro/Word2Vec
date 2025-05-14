@@ -21,30 +21,36 @@ def get_word_embedding(word: str) -> list[float] | None:
 
     return None
 
-# ====
-# __MAIN__
-# ====
+# 1. Vocabulary and dictionary building
+# This process allows to map words to numerical indexes.
+# The "Word2Idex" dictionary specifically maps word to integers and the "Index2Words" is the exact opposite.
+#
+# Example...
+# - input:         "Il romanzo ha inizio con la festa..."
+# - tokens:        [Token(type: "Identifier", content: "Il") ...]
+# - identifiers:   ["il", "romanzo", "ha", "inizio"...]
+# - vocab:         ["il", "romanzo", "ha", "inizio"...] <- Only uniques values
+# - w2i:           {("il": 0), ("romanzo": 1), ...}
+# - i2w:           {(0: "in"), (1: "romanzo"), ...}
 
-with open("source/corpus.txt", "r", encoding = "utf-8") as file:
+with open("source/sm.txt", "r", encoding = "utf-8") as file:
     input: str = file.read()
 
-# Dev example...
-input = "Il romanzo ha inizio con la festa del 111º compleanno di Bilbo e del 33° di suo nipote Frodo."
-
-# Builds the vocabulary through input tokenization.
-# Only the "Identifier" tokens are actually usefull, so the token list is further filtered before usage.
 tokens: list[Token] = get_tokens(input)
 identifiers: list[str] = get_identifiers(tokens)
 vocab: list[str] = build_vocabulary(identifiers)
 
-# Builds the "Word2Index" and "Index2Word" dictionaries
-# The "Word2Index" dictionary maps every identifier in the vocabulary to the specific index.
-# The "Index2Word" dictionary is basically "Word2Index" reverse.
 w2i: dict[str, int] = build_w2i_dict(vocab)
 i2w: dict[int, str] = build_i2w_dict(w2i)
 
-# Builds the cotiguous pairs set.
-# For example... "My name is Carlo": [("My", "name") ("name", "is"), ("is", "Carlo")]
+# 2. Contiguous pairs retrival.
+# This process extracts contiguous words in order to identify recurring semantic patterns.
+# The pairs are than converted in numerical indexes as "x -> target", "y -> context".
+# Example...
+# - pairs: [("il", "romanzo"), ("romanzo", "ha"), ...] <- Only uniques values
+# - x:     [0, 2, 19, ...] 
+# - x:     [4, 7, 51, ...] 
+
 pairs: set[tuple[str, str]] = get_contiguous_pairs(identifiers)
 
 x: list[int] = []

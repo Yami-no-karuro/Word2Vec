@@ -71,10 +71,21 @@ for target, context in pairs:
 embedding_dim: int = 1024
 vocab_size: int = len(vocab)
 
-# 4. Embedding matrix and projection matrix.
-# The "Embedding Matrix" or w1 is a "vocab_size * embedding_dim" matrix where every row represents a specific word embedding.
-# The "Projection Matrix" or w2 is a "vocab_size * embedding_dim" matrix where every column represents a weigth associated to a specific vocabulary word.
-
+# 4. Embedding matrix.
+# The "Embedding Matrix" or "w1" is a [vocab_size][embedding_dim] matrix used to retrieve the embedding of a given input word (target).
+# Each row w1[i] represents the embedding vector of the word with index i in the vocabulary.
+#
+# Think of it as:
+#
+#        embedding_dim →
+#      ┌─────────────────────┐
+#      │ "il"      → [ ... ] │
+#      │ "romanzo" → [ ... ] │
+#      │ "ha"      → [ ... ] │
+#      │ "inizio"  → [ ... ] │
+#  ↓   │   ...               │
+# vocab_size
+#
 w1: list[list[float]] = []
 for word_index in range(vocab_size):
     mbd_vector: list[float] = []
@@ -85,6 +96,23 @@ for word_index in range(vocab_size):
 
     w1.append(mbd_vector)
 
+# 5. Output Projection Matrix.
+# The "Output Projection Matrix" is a [embedding_dim][vocab_size] matrix used to transform the embedding vector into a probability distribution over all words.
+# Each column w2[:,i] represents the output vector associated with the word at index i.
+# It’s used to project the input embedding into a distribution over the vocabulary via softmax.
+#
+# Think of it as:
+#
+#             vocab_size →
+#           "il" "romanzo"  "ha" ...
+#        ┌──────────────────────────┐
+#   dim0 │ w2[0][0] w2[0][1] ...    │
+#   dim1 │ w2[1][0] w2[1][1] ...    │
+#   ...  │         ...              │
+#        └──────────────────────────┘
+#       ↑
+#  embedding_dim
+#
 w2: list[list[float]] = []
 for dimension in range(embedding_dim):
     out_vector: list[float] = []

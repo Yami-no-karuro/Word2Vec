@@ -16,19 +16,6 @@ import random
 import pickle
 import re
 
-def save(path: str):
-    model: dict = {
-        "w1": w1,
-        "w2": w2,
-        "w2i": w2i,
-        "i2w": i2w,
-        "embedding_dim": embedding_dim,
-        "vocab_size": vocab_size
-    }
-
-    with open(path, "wb") as f:
-        pickle.dump(model, f)
-
 def get_word_embedding(word: str) -> list[float] | None:
     if word in w2i:
         return w1[w2i[word]]
@@ -154,7 +141,7 @@ for dimension in range(embedding_dim):
 # 6. Accumulates the cross-entropy loss for reporting.
 
 learning_rate: float = 0.05
-epochs: int = 50
+epochs: int = 10
 
 print("Starting training iterations...")
 for epoch in range(epochs):
@@ -206,13 +193,5 @@ for epoch in range(epochs):
         total_loss += loss
 
     print(f"[{epoch + 1}/{epochs}] - loss: {total_loss:.4f}")
-
-save("models/sm.pkl")
 print("Traning completed...")
-
-# ====
-# Usage
-# ====
-
-# ...
 

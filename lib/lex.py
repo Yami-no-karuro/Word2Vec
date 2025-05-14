@@ -29,4 +29,3 @@ def get_contiguous_pairs(identifiers: list[str]) -> set[tuple[str, str]]:
             pairs.add((identifiers[idx], identifiers[idx + 1]))
 
     return pairs
-

@@ -21,6 +21,10 @@ def get_word_embedding(word: str) -> list[float] | None:
 
     return None
 
+# ====
+# Training Data
+# ====
+
 # 1. Vocabulary and dictionary.
 # This process allows to map words to numerical indexes.
 # The "Word2Idex" dictionary specifically maps word to integers and the "Index2Words" is the exact opposite.
@@ -124,39 +128,56 @@ for dimension in range(embedding_dim):
     w2.append(out_vector)
 
 # ====
-# Learning
+# Model Training 
 # ====
 
+# For each (target, context) word pair:
+# 1. Retrieves the embedding vector of the target word from w1.
+# 2. Projects this vector to the output space using w2.
+# 3. Computes the softmax distribution (predicted context probabilities).
+# 4. Calculates the error between prediction and actual context word.
+# 5. Updates both w2 (output projection) and w1 (embedding) using gradient descent.
+# 6. Accumulates the cross-entropy loss for reporting.
+
 learning_rate: float = 0.05
-epochs: int = 10
+epochs: int = 50
 
 for epoch in range(epochs):
     total_loss: float = 0.0
 
     for i in range(len(x)):
-        target_idx: int = x[i]
-        context_idx: int = y[i]
+        target_idx: int = x[i] # The center word index (target)
+        context_idx: int = y[i] # The surrounding word index (context)
 
+        # 1. Gets embedding vector of the target word from w1.
         v: list[float] = w1[target_idx]
-        z: list[float] = []
 
+        # 2. Projects v into vocabulary space by computing dot product with w2.
+        #    z[i] will be the unnormalized logit for word i.
+        z: list[float] = []
         for i_vocab in range(vocab_size):
             dot: float = 0.0
             for d in range(embedding_dim):
                 dot += w2[d][i_vocab] * v[d]
-
             z.append(dot)
 
+        # 3. Applies softmax to get predicted probability distribution.
         y_pred: list[float] = softmax(z)
 
+        # 4. Computes the error vector.
+        #    The true label is a one-hot vector where only context_idx is 1.
         error: list[float] = [p for p in y_pred]
         error[context_idx] -= 1.0
 
+        # 5. Update w2 (output projection matrix).
+        #    Using gradient: dL/dw2[d][i_vocab] = error[i_vocab] * v[d].
         for d in range(embedding_dim):
             for i_vocab in range(vocab_size):
                 gradient: float = error[i_vocab] * v[d]
                 w2[d][i_vocab] -= learning_rate * gradient
 
+        # 6. Update w1 (embedding matrix).
+        #    Using gradient: dL/dw1[target_idx][d] = sum(error[i_vocab] * w2[d][i_vocab]).
         for d in range(embedding_dim):
             grad: float = 0.0
             for i_vocab in range(vocab_size):
@@ -164,11 +185,17 @@ for epoch in range(epochs):
 
             w1[target_idx][d] -= learning_rate * grad
 
-        loss: float = -math.log(y_pred[context_idx] + 1e-10)
+        # 7. Compute loss for monitoring.
+        #    Cross-entropy loss for the predicted probability of the actual context word.
+        loss: float = -math.log(y_pred[context_idx] + 1e-10)  # Avoid log(0)
         total_loss += loss
 
     print(f"Epoch {epoch + 1}/{epochs}, Loss: {total_loss:.4f}")
 
+# ====
+# Usage
+# ====
+
 result = get_word_embedding("frodo")
-print(result)
+print(f"Embeddings of \"Frodo\": {result}")
 

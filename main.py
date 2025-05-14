@@ -21,7 +21,7 @@ def get_word_embedding(word: str) -> list[float] | None:
 
     return None
 
-# 1. Vocabulary and dictionary building.
+# 1. Vocabulary and dictionary.
 # This process allows to map words to numerical indexes.
 # The "Word2Idex" dictionary specifically maps word to integers and the "Index2Words" is the exact opposite.
 #
@@ -43,7 +43,7 @@ vocab: list[str] = build_vocabulary(identifiers)
 w2i: dict[str, int] = build_w2i_dict(vocab)
 i2w: dict[int, str] = build_i2w_dict(w2i)
 
-# 2. Contiguous pairs retrival.
+# 2. Contiguous pairs.
 # This process extracts contiguous words in order to identify recurring semantic patterns.
 # The pairs are than converted in numerical indexes as "x -> target", "y -> context".
 #

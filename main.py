@@ -187,7 +187,7 @@ for epoch in range(epochs):
 
         # 7. Compute loss for monitoring.
         #    Cross-entropy loss for the predicted probability of the actual context word.
-        loss: float = -math.log(y_pred[context_idx] + 1e-10)  # Avoid log(0)
+        loss: float = -math.log(y_pred[context_idx] + 1e-10)  # <- Avoids log(0)
         total_loss += loss
 
     print(f"Epoch {epoch + 1}/{epochs}, Loss: {total_loss:.4f}")

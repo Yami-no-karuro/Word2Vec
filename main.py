@@ -21,7 +21,7 @@ def get_word_embedding(word: str) -> list[float] | None:
 
     return None
 
-# 1. Vocabulary and dictionary building
+# 1. Vocabulary and dictionary building.
 # This process allows to map words to numerical indexes.
 # The "Word2Idex" dictionary specifically maps word to integers and the "Index2Words" is the exact opposite.
 #
@@ -46,15 +46,16 @@ i2w: dict[int, str] = build_i2w_dict(w2i)
 # 2. Contiguous pairs retrival.
 # This process extracts contiguous words in order to identify recurring semantic patterns.
 # The pairs are than converted in numerical indexes as "x -> target", "y -> context".
+#
 # Example...
 # - pairs: [("il", "romanzo"), ("romanzo", "ha"), ...] <- Only uniques values
 # - x:     [0, 2, 19, ...] 
 # - x:     [4, 7, 51, ...] 
 
-pairs: set[tuple[str, str]] = get_contiguous_pairs(identifiers)
-
 x: list[int] = []
 y: list[int] = []
+pairs: set[tuple[str, str]] = get_contiguous_pairs(identifiers)
+
 for target, context in pairs:
     if target in w2i and context in w2i:
         t_idx: int = w2i[target]
@@ -64,8 +65,15 @@ for target, context in pairs:
         c_idx: int = w2i[context]
         y.append(c_idx)
 
+# 3. Model parameters.
+# The embedding size and the vocabulary size are configured.
+
 embedding_dim: int = 1024
 vocab_size: int = len(vocab)
+
+# 4. Embedding matrix and projection matrix.
+# The "Embedding Matrix" or w1 is a "vocab_size * embedding_dim" matrix where every row represents a specific word embedding.
+# The "Projection Matrix" or w2 is a "vocab_size * embedding_dim" matrix where every column represents a weigth associated to a specific vocabulary word.
 
 w1: list[list[float]] = []
 for word_index in range(vocab_size):

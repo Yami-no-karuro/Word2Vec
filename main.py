@@ -1,4 +1,37 @@
-from tokenizer import Token, get_tokens
+from dataclasses import dataclass
+
+import math
+import random
+import re
+
+@dataclass
+class Token:
+    type: str
+    content: str
+
+def get_tokens(input: str) -> list[Token]:
+    words: list[str] = re.findall(
+        r"\w+|[^\w\s]",
+        input,
+        re.UNICODE
+    )
+
+    tokens: list[Token] = []
+    for index, word in enumerate(words):
+        t_type: str = "Unknown"
+        if word.isalpha():
+            t_type = "Identifier"
+        elif word.isdigit():
+            t_type = "Number"
+        elif re.match(r"\W", word):
+            t_type = "Punctuation"
+
+        tokens.append(Token(
+            type = t_type, 
+            content = word
+        ))
+
+    return tokens
 
 def get_identifiers(tokens: list[Token]) -> list[str]:
     identifiers: list[str] = []
@@ -41,6 +74,30 @@ def get_contiguous_pairs(identifiers: list[str]) -> set[tuple[str, str]]:
 
     return pairs
 
+def softmax(z: list[float]) -> list[float]:
+    max_z: float = max(z)
+    exp_z: list[float] = []
+    for value in z:
+        exp_value = math.exp(value - max_z)
+        exp_z.append(exp_value)
+
+    sum_exp: float = 0.0
+    for value in exp_z:
+        sum_exp += value
+
+    result: list[float] = []
+    for value in exp_z:
+        softmax_value = value / sum_exp
+        result.append(softmax_value)
+
+    return result
+
+def get_embedding(word: str) -> list[float] | None:
+    if word in w2i:
+        return w1[w2i[word]]
+
+    return None
+
 # ====
 # __MAIN__
 # ====
@@ -58,18 +115,86 @@ i2w: dict[int, str] = build_i2w_dict(w2i)
 
 pairs: set[tuple[str, str]] = get_contiguous_pairs(identifiers)
 
-X: list[int] = []
-Y: list[int] = []
+x: list[int] = []
+y: list[int] = []
 
 for target, context in pairs:
     if target in w2i and context in w2i:
         t_idx: int = w2i[target]
-        X.append(t_idx)
+        x.append(t_idx)
 
     if context in w2i:
         c_idx: int = w2i[context]
-        Y.append(c_idx)
+        y.append(c_idx)
 
-print("X (Target):", X)
-print("Y (Context):", Y)
+embedding_dim: int = 1024
+vocab_size: int = len(vocab)
 
+w1: list[list[float]] = []
+for word_index in range(vocab_size):
+    mbd_vector: list[float] = []
+
+    for dimension in range(embedding_dim):
+        random_value: float = random.uniform(-0.01, 0.01)
+        mbd_vector.append(random_value)
+
+    w1.append(mbd_vector)
+
+w2: list[list[float]] = []
+for dimension in range(embedding_dim):
+    out_vector: list[float] = []
+
+    for word_index in range(vocab_size):
+        random_value: float = random.uniform(-0.01, 0.01)
+        out_vector.append(random_value)
+
+    w2.append(out_vector)
+
+# ====
+# Learning
+# ====
+
+learning_rate: float = 0.05
+epochs: int = 10
+
+for epoch in range(epochs):
+    total_loss: float = 0.0
+
+    for i in range(len(x)):
+        target_idx: int = x[i]
+        context_idx: int = y[i]
+
+        v: list[float] = w1[target_idx]
+        z: list[float] = []
+
+        for i_vocab in range(vocab_size):
+            dot: float = 0.0
+            for d in range(embedding_dim):
+                dot += w2[d][i_vocab] * v[d]
+
+            z.append(dot)
+
+        y_pred: list[float] = softmax(z)
+
+        error: list[float] = [p for p in y_pred]
+        error[context_idx] -= 1.0
+
+        for d in range(embedding_dim):
+            for i_vocab in range(vocab_size):
+                gradient: float = error[i_vocab] * v[d]
+                w2[d][i_vocab] -= learning_rate * gradient
+
+        for d in range(embedding_dim):
+            grad: float = 0.0
+            for i_vocab in range(vocab_size):
+                grad += error[i_vocab] * w2[d][i_vocab]
+
+            w1[target_idx][d] -= learning_rate * grad
+
+        loss: float = -math.log(y_pred[context_idx] + 1e-10)
+        total_loss += loss
+
+    print(f"Epoch {epoch + 1}/{epochs}, Loss: {total_loss:.4f}")
+
+result = get_embedding("frodo")
+print(result)

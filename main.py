@@ -1,98 +1,21 @@
 from dataclasses import dataclass
 
+from lib.math import softmax
+
+from lib.tokenizer import Token
+from lib.tokenizer import get_tokens
+from lib.tokenizer import get_identifiers
+
+from lib.lex import build_vocabulary
+from lib.lex import build_w2i_dict
+from lib.lex import build_i2w_dict
+from lib.lex import get_contiguous_pairs
+
 import math
 import random
 import re
 
-@dataclass
-class Token:
-    type: str
-    content: str
-
-def get_tokens(input: str) -> list[Token]:
-    words: list[str] = re.findall(
-        r"\w+|[^\w\s]",
-        input,
-        re.UNICODE
-    )
-
-    tokens: list[Token] = []
-    for index, word in enumerate(words):
-        t_type: str = "Unknown"
-        if word.isalpha():
-            t_type = "Identifier"
-        elif word.isdigit():
-            t_type = "Number"
-        elif re.match(r"\W", word):
-            t_type = "Punctuation"
-
-        tokens.append(Token(
-            type = t_type, 
-            content = word
-        ))
-
-    return tokens
-
-def get_identifiers(tokens: list[Token]) -> list[str]:
-    identifiers: list[str] = []
-    for token in tokens:
-        if token.type == "Identifier":
-            word: str = token.content.lower()
-            identifiers.append(word)
-
-    return identifiers
-
-def build_vocabulary(identifiers: list[str]) -> list[str]:
-    vocab: set[str] = set()
-    for identifier in identifiers:
-        vocab.add(identifier)
-
-    vocab: list[str] = sorted(vocab)
-    return vocab
-
-def build_w2i_dict(vocabulary: list[str]) -> dict[str, int]:
-    w2i: dict[str, int] = dict()
-    for index in range(len(vocabulary)):
-        word: str = vocabulary[index]
-        w2i[word] = index
-
-    return w2i
-
-def build_i2w_dict(w2i: dict[str, int]) -> dict[int, str]:
-    i2w: dict[int, str] = dict()
-    for word, index in w2i.items():
-        i2w[index] = word
-
-    return i2w
-
-def get_contiguous_pairs(identifiers: list[str]) -> set[tuple[str, str]]:
-    pairs: set[tuple[str, str]] = set()
-    for idx, _ in enumerate(identifiers):
-        if idx > 0 and idx < len(identifiers) - 1:
-            pairs.add((identifiers[idx - 1], identifiers[idx]))
-            pairs.add((identifiers[idx], identifiers[idx + 1]))
-
-    return pairs
-
-def softmax(z: list[float]) -> list[float]:
-    max_z: float = max(z)
-    exp_z: list[float] = []
-    for value in z:
-        exp_value = math.exp(value - max_z)
-        exp_z.append(exp_value)
-
-    sum_exp: float = 0.0
-    for value in exp_z:
-        sum_exp += value
-
-    result: list[float] = []
-    for value in exp_z:
-        softmax_value = value / sum_exp
-        result.append(softmax_value)
-
-    return result
-
-def get_embedding(word: str) -> list[float] | None:
+def get_word_embedding(word: str) -> list[float] | None:
     if word in w2i:
         return w1[w2i[word]]
 
@@ -102,22 +25,30 @@ def get_embedding(word: str) -> list[float] | None:
 # __MAIN__
 # ====
 
-input: str = """Il romanzo ha inizio con la festa del 111º compleanno di Bilbo e del 33° di suo nipote Frodo. 
-    Alla fine della festa, Bilbo comunica a tutti i presenti che intende lasciare la Contea per sempre e, dopo essersi infilato l'anello, sparisce, ma viene raggiunto a Casa Baggins da Gandalf, che riesce a convincerlo a lasciare l'anello a Frodo. 
-    Lo stregone comincia a sospettare della natura dell'anello, perciò consiglia a Frodo di non adoperarlo mai e si allontana da Casa Baggins alla ricerca della verità."""
+with open("source/corpus.txt", "r", encoding = "utf-8") as file:
+    input: str = file.read()
 
+# Dev example...
+input = "Il romanzo ha inizio con la festa del 111º compleanno di Bilbo e del 33° di suo nipote Frodo."
+
+# Builds the vocabulary through input tokenization.
+# Only the "Identifier" tokens are actually usefull, so the token list is further filtered before usage.
 tokens: list[Token] = get_tokens(input)
 identifiers: list[str] = get_identifiers(tokens)
 vocab: list[str] = build_vocabulary(identifiers)
 
+# Builds the "Word2Index" and "Index2Word" dictionaries
+# The "Word2Index" dictionary maps every identifier in the vocabulary to the specific index.
+# The "Index2Word" dictionary is basically "Word2Index" reverse.
 w2i: dict[str, int] = build_w2i_dict(vocab)
 i2w: dict[int, str] = build_i2w_dict(w2i)
 
+# Builds the cotiguous pairs set.
+# For example... "My name is Carlo": [("My", "name") ("name", "is"), ("is", "Carlo")]
 pairs: set[tuple[str, str]] = get_contiguous_pairs(identifiers)
 
 x: list[int] = []
 y: list[int] = []
-
 for target, context in pairs:
     if target in w2i and context in w2i:
         t_idx: int = w2i[target]
@@ -196,5 +127,6 @@ for epoch in range(epochs):
 
     print(f"Epoch {epoch + 1}/{epochs}, Loss: {total_loss:.4f}")
 
-result = get_embedding("frodo")
+result = get_word_embedding("frodo")
 print(result)
+

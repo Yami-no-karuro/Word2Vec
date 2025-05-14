@@ -31,6 +31,15 @@ def get_tokens(input: str) -> list[Token]:
 
     return tokens
 
+def get_identifiers(tokens: list[Token]) -> list[str]:
+    identifiers: list[str] = []
+    for token in tokens:
+        if token.type == "Identifier":
+            word: str = token.content.lower()
+            identifiers.append(word)
+
+    return identifiers
+
 @dataclass
 class Sentence:
     length: int

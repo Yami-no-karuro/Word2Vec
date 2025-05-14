@@ -142,6 +142,7 @@ for dimension in range(embedding_dim):
 learning_rate: float = 0.05
 epochs: int = 50
 
+print("Starting training iterations...")
 for epoch in range(epochs):
     total_loss: float = 0.0
 
@@ -190,12 +191,11 @@ for epoch in range(epochs):
         loss: float = -math.log(y_pred[context_idx] + 1e-10)  # <- Avoids log(0)
         total_loss += loss
 
-    print(f"Epoch {epoch + 1}/{epochs}, Loss: {total_loss:.4f}")
+    print(f"[{epoch + 1}/{epochs}] - loss: {total_loss:.4f}")
+print("Traning completed...")
 
 # ====
 # Usage
 # ====
 
-result = get_word_embedding("frodo")
-print(f"Embeddings of \"Frodo\": {result}")
-
+# ...

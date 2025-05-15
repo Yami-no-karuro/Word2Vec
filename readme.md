@@ -50,7 +50,8 @@ The model computes:
 - `z` = dot product `w2^T · v` → unnormalized logits
 - `y_pred` = softmax(z) → predicted probabilities
 
-Weights are updated with gradient descent and loss is tracked over time.
+Weights are updated with **Gradient Descent** and loss is tracked over time.  
+(More on [Gradient Descent](https://en.wikipedia.org/wiki/Gradient_descent), [Softmax](https://en.wikipedia.org/wiki/Softmax_function) and [Dot Product](https://en.wikipedia.org/wiki/Dot_product) on [Wikipedia](https://en.wikipedia.org))
 
 ### Example
 

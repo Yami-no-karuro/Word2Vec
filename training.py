@@ -38,8 +38,9 @@ with open("source/corpus.txt", "r", encoding = "utf-8") as file:
 
 tokens: list[Token] = get_tokens(input)
 identifiers: list[str] = get_identifiers(tokens)
-vocab: list[str] = build_vocabulary(identifiers)
+identifiers.append("<unknown>")
 
+vocab: list[str] = build_vocabulary(identifiers)
 w2i: dict[str, int] = build_w2i_dict(vocab)
 i2w: dict[int, str] = build_i2w_dict(w2i)
 

@@ -15,6 +15,6 @@ model: dict = load_model("models/model.pkl")
 # Example...
 # ====
 
-result: list[float] = get_word_embedding("supercalifragilisticexpialidocious", model)
+result: list[float] = get_word_embedding("Romanzo", model)
 print(result)
 

@@ -1,20 +1,14 @@
 from lib.utils import load_model
 
-def get_word_embedding(word: str, model: dict) -> list[float]:
-    word: str = word.lower()
-    w1: list[list[float]] = model["w1"]
-    w2i: dict[str, int] = model["w2i"]
-
-    idx: int = w2i.get(word, w2i.get("<unknown>"))
-    return w1[idx]
+from lib.embedder import get_word_embedding
+from lib.embedder import get_sentence_embedding
 
 print("Loading model...")
 model: dict = load_model("models/model.pkl")
 
-# ====
-# Example...
-# ====
+word_embedding: list[float] = get_word_embedding("Romanzo", model)
+print(f"Word embedding: \"{word_embedding}\"")
 
-result: list[float] = get_word_embedding("Romanzo", model)
-print(result)
+sentence_embedding: list[float] = get_sentence_embedding("Lo stregone comincia a sospettare della natura dell'anello.", model)
+print(f"Sentence embedding: \"{sentence_embedding}\"")
 

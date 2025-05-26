@@ -10,58 +10,42 @@ The **Word2Vec** algorithm estimates these representations by modeling text in a
 Once trained, such a model can detect synonymous words or suggest additional words for a partial sentence.  
 (More on [Word2Vec](https://en.wikipedia.org/wiki/Word2vec), [NPL](https://en.wikipedia.org/wiki/Natural_language_processing) and [Vectors](https://en.wikipedia.org/wiki/Vector_space) on [Wikipedia](https://en.wikipedia.org/))
 
-### What is this example about?
+### Vocabulary, Word2Index and Index2Word
 
-This project is a **from-scratch** implementation of the **Skip-Gram** variant of the **Word2Vec** model using pure Python.  
-The objective is to learn word **embeddings—dense vector representations** by scanning a corpus of text and predicting the surrounding context words given a target word.  
-It is designed for **educational purposes** and focuses on clarity and simplicity, rather than computational efficiency or performance.  
-The training follows these key steps:
+This phase of the training process allows to map words to numerical indexes.  
+The text goes through a tokenization process, then the identifiers are extracted and organized.
 
-- Tokenization of the input text.
-- Extraction of identifiers (words).
-- Building a vocabulary of unique tokens.
-- Encoding pairs of contiguous words as input/output training samples.
-- Initializing the embedding and projection matrices.
-- Training the model using a simple form of gradient descent.
-- Saving the resulting model to disk.
+The first piece of information that we need is the **vocabulary**.  
+The **vocabulary** contains every word in the corpus.
 
-### Vocabulary
+```python
+def build_vocabulary(identifiers: list[str]) -> list[str]:
+    vocab: set[str] = set()
+    for identifier in identifiers:
+        vocab.add(identifier)
 
-Each unique word is assigned an integer ID:
-- `w2i`: maps word → index
-- `i2w`: maps index → word
+    vocab: list[str] = sorted(vocab)
+    return vocab
+```
 
-### Training Data
+After the vocabulary we need to create the **Word2Index** dictionary and his reverse, to map words to numerical indexes.
 
-The model looks at pairs of **contiguous words** (e.g., `("il", "romanzo")`) to learn meaningful relationships.  
-These pairs are encoded as integer indices:
+```python
+# Word2Index
+def build_w2i_dict(vocabulary: list[str]) -> dict[str, int]:
+    w2i: dict[str, int] = dict()
+    for index in range(len(vocabulary)):
+        word: str = vocabulary[index]
+        w2i[word] = index
 
-- `x`: list of target word indices
-- `y`: list of context word indices
+    return w2i
 
-### Model Structure
+# Index2Words 
+def build_i2w_dict(w2i: dict[str, int]) -> dict[int, str]:
+    i2w: dict[int, str] = dict()
+    for word, index in w2i.items():
+        i2w[index] = word
 
-- `w1`: Embedding matrix of shape `[vocab_size][embedding_dim]`
-- `w2`: Output projection matrix of shape `[embedding_dim][vocab_size]`
-
-The model computes:
-
-- `v` = embedding of target word → `w1[target_idx]`
-- `z` = dot product `w2^T · v` → unnormalized logits
-- `y_pred` = softmax(z) → predicted probabilities
-
-Weights are updated with **Gradient Descent** and loss is tracked over time.  
-(More on [Gradient Descent](https://en.wikipedia.org/wiki/Gradient_descent), [Softmax](https://en.wikipedia.org/wiki/Softmax_function) and [Dot Product](https://en.wikipedia.org/wiki/Dot_product) on [Wikipedia](https://en.wikipedia.org))
-
-### Example
-
-Given a sentence like:
-
-    "Il romanzo ha inizio con la festa..."
-
-The model will extract pairs like:
-
-    ("il", "romanzo"), ("romanzo", "ha"), ("ha", "inizio"), ...
-
-These will be used to train the model to associate the embedding of `"il"` with the context `"romanzo"`, and so on.
+    return i2w
+```
 

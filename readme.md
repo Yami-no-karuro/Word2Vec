@@ -64,3 +64,4 @@ The model will extract pairs like:
     ("il", "romanzo"), ("romanzo", "ha"), ("ha", "inizio"), ...
 
 These will be used to train the model to associate the embedding of `"il"` with the context `"romanzo"`, and so on.
+

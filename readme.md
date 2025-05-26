@@ -100,3 +100,32 @@ for word_index in range(vocab_size):
     w1.append(mbd_vector)
 ```
 
+### 5. Output Projection Matrix
+
+The **output projection matrix** is a `[embedding_dim][vocab_size]` matrix used to transform the embedding vector into a probability distribution over all words.  
+Each column `w2[:,i]` represents the output vector associated with the word at index i.  
+It’s used to project the input embedding into a distribution over the vocabulary via **softmax**.  
+(More on [Softmax](https://en.wikipedia.org/wiki/Softmax_function) on [Wikipedia](https://en.wikipedia.org/))
+
+```python
+#             vocab_size →
+#           "il" "romanzo"  "ha" ...
+#        ┌──────────────────────────┐
+#   dim0 │ w2[0][0] w2[0][1] ...    │
+#   dim1 │ w2[1][0] w2[1][1] ...    │
+#   ...  │         ...              │
+#        └──────────────────────────┘
+#       ↑
+#  embedding_dim
+
+w2: list[list[float]] = []
+for dimension in range(embedding_dim):
+    out_vector: list[float] = []
+
+    for word_index in range(vocab_size):
+        random_value: float = random.uniform(-0.01, 0.01)
+        out_vector.append(random_value)
+
+    w2.append(out_vector)
+```
+

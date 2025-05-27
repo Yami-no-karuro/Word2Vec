@@ -72,7 +72,7 @@ for target, context in pairs:
 # The embedding size and the vocabulary size are configured.
 
 vocab_size: int = len(vocab)
-embedding_dim: int = 768
+embedding_dim: int = 256
 learning_rate: float = 0.005
 epochs: int = 100
 
@@ -180,7 +180,8 @@ for epoch in range(epochs):
         losses = list(executor.map(train_pair, range(len(x))))
 
     total_loss = sum(losses)
-    print(f"[{epoch + 1}/{epochs}] - loss: {total_loss:.4f}")
+    avg_loss: float = total_loss / len(x)
+    print(f"[{epoch + 1}/{epochs}] - loss: {total_loss:.2f} (avg: {avg_loss:.4f})")
 
 dump_model("models/model.pkl", {
     "w1": w1,

@@ -12,6 +12,7 @@ from lib.lex import build_w2i_dict
 from lib.lex import build_i2w_dict
 from lib.lex import get_contiguous_pairs
 
+import threading
 import math
 import random
 import pickle
@@ -137,7 +138,9 @@ for dimension in range(embedding_dim):
 # 6. Accumulates the cross-entropy loss for reporting.
 
 learning_rate: float = 0.05
-epochs: int = 10
+epochs: int = 25
+
+lock = threading.Lock()
 
 print("Starting training iterations...")
 for epoch in range(epochs):

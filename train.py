@@ -74,7 +74,7 @@ for target, context in pairs:
 vocab_size: int = len(vocab)
 embedding_dim: int = 768
 learning_rate: float = 0.05
-epochs: int = 50
+epochs: int = 100
 
 # 4. Embedding matrix.
 # The "Embedding Matrix" or "w1" is a [vocab_size][embedding_dim] matrix used to retrieve the embedding of a given input word (target).
@@ -132,14 +132,6 @@ for dimension in range(embedding_dim):
 # Model Training 
 # ====
 
-# For each (target, context) word pair:
-# 1. Retrieves the embedding vector of the target word from w1.
-# 2. Projects this vector to the output space using w2.
-# 3. Computes the softmax distribution (predicted context probabilities).
-# 4. Calculates the error between prediction and actual context word.
-# 5. Updates both w2 (output projection) and w1 (embedding) using gradient descent.
-# 6. Accumulates the cross-entropy loss for reporting.
-
 lock = threading.Lock()
 
 def train_pair(i: int) -> float:
@@ -185,7 +177,6 @@ def train_pair(i: int) -> float:
 print("Starting training iterations...")
 for epoch in range(epochs):
     total_loss: float = 0.0
-
     with ThreadPoolExecutor(max_workers = 8) as executor:
         losses = list(executor.map(train_pair, range(len(x))))
 

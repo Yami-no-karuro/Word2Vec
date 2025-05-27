@@ -72,9 +72,9 @@ for target, context in pairs:
 # The embedding size and the vocabulary size are configured.
 
 vocab_size: int = len(vocab)
-embedding_dim: int = 1024
+embedding_dim: int = 768
 learning_rate: float = 0.05
-epochs: int = 25
+epochs: int = 50
 
 # 4. Embedding matrix.
 # The "Embedding Matrix" or "w1" is a [vocab_size][embedding_dim] matrix used to retrieve the embedding of a given input word (target).

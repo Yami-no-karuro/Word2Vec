@@ -72,7 +72,7 @@ for target, context in pairs:
 ### 3. Training Data - Model Parameters
 
 At this point, model parameters such as the **embeddingsize**, the **learning rate** and the number of **epochs** should be defined.  
-In this example we'll be using 1024 as **embedding size**, 0.05 as **learning rate** e 25 **epochs**.
+In this example we'll be using 768 as **embedding size**, 0.05 as **learning rate** and 50 **epochs**.
 
 ### 4. Training Data - Embedding Matrix
 

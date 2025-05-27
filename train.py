@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from concurrent.futures import ThreadPoolExecutor
 
 from lib.math import softmax
 from lib.utils import dump_model
@@ -70,8 +71,10 @@ for target, context in pairs:
 # 3. Model parameters.
 # The embedding size and the vocabulary size are configured.
 
-embedding_dim: int = 1024
 vocab_size: int = len(vocab)
+embedding_dim: int = 1024
+learning_rate: float = 0.05
+epochs: int = 25
 
 # 4. Embedding matrix.
 # The "Embedding Matrix" or "w1" is a [vocab_size][embedding_dim] matrix used to retrieve the embedding of a given input word (target).
@@ -137,49 +140,37 @@ for dimension in range(embedding_dim):
 # 5. Updates both w2 (output projection) and w1 (embedding) using gradient descent.
 # 6. Accumulates the cross-entropy loss for reporting.
 
-learning_rate: float = 0.05
-epochs: int = 25
-
 lock = threading.Lock()
 
-print("Starting training iterations...")
-for epoch in range(epochs):
-    total_loss: float = 0.0
+def train_pair(i: int) -> float:
+    target_idx: int = x[i]
+    context_idx: int = y[i]
 
-    for i in range(len(x)):
-        target_idx: int = x[i]  # The center word index (target)
-        context_idx: int = y[i] # The surrounding word index (context)
+    # 1. Gets the embedding vector of the target word from w1.
+    v: list[float] = w1[target_idx]
 
-        # 1. Gets embedding vector of the target word from w1.
-        v: list[float] = w1[target_idx]
+    # 2. Projects v into vocabulary space by computing dot product with w2.
+    z: list[float] = []
+    for i_vocab in range(vocab_size):
+        dot: float = 0.0
+        for d in range(embedding_dim):
+            dot += w2[d][i_vocab] * v[d]
+        z.append(dot)
 
-        # 2. Projects v into vocabulary space by computing dot product with w2.
-        #    z[i] will be the unnormalized logit for word i.
-        z: list[float] = []
-        for i_vocab in range(vocab_size):
-            dot: float = 0.0
-            for d in range(embedding_dim):
-                dot += w2[d][i_vocab] * v[d]
+    # 3. Applies softmax to get predicted probability distribution.
+    y_pred: list[float] = softmax(z)
 
-            z.append(dot)
+    # 4. Computes the error vector.
+    error: list[float] = [p for p in y_pred]
+    error[context_idx] -= 1.0
 
-        # 3. Applies softmax to get predicted probability distribution.
-        y_pred: list[float] = softmax(z)
-
-        # 4. Computes the error vector.
-        #    The true label is a one-hot vector where only context_idx is 1.
-        error: list[float] = [p for p in y_pred]
-        error[context_idx] -= 1.0
-
-        # 5. Update w2 (output projection matrix).
-        #    Using gradient: dL/dw2[d][i_vocab] = error[i_vocab] * v[d].
+    # 5. Updates w2 e w1 with lock to avoid race conditions
+    with lock:
         for d in range(embedding_dim):
             for i_vocab in range(vocab_size):
                 gradient: float = error[i_vocab] * v[d]
                 w2[d][i_vocab] -= learning_rate * gradient
 
-        # 6. Update w1 (embedding matrix).
-        #    Using gradient: dL/dw1[target_idx][d] = sum(error[i_vocab] * w2[d][i_vocab]).
         for d in range(embedding_dim):
             grad: float = 0.0
             for i_vocab in range(vocab_size):
@@ -187,11 +178,18 @@ for epoch in range(epochs):
 
             w1[target_idx][d] -= learning_rate * grad
 
-        # 7. Compute loss for monitoring.
-        #    Cross-entropy loss for the predicted probability of the actual context word.
-        loss: float = -math.log(y_pred[context_idx] + 1e-10)  # <- Avoids log(0)
-        total_loss += loss
+    # 6. Computes loss for monitoring.
+    loss: float = -math.log(y_pred[context_idx] + 1e-10)
+    return loss
 
+print("Starting training iterations...")
+for epoch in range(epochs):
+    total_loss: float = 0.0
+
+    with ThreadPoolExecutor(max_workers = 8) as executor:
+        losses = list(executor.map(train_pair, range(len(x))))
+
+    total_loss = sum(losses)
     print(f"[{epoch + 1}/{epochs}] - loss: {total_loss:.4f}")
 
 print("Traning completed...")

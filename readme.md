@@ -10,7 +10,7 @@ The **Word2Vec** algorithm estimates these representations by modeling text in a
 Once trained, such a model can detect synonymous words or suggest additional words for a partial sentence.  
 (More on [Word2Vec](https://en.wikipedia.org/wiki/Word2vec), [NPL](https://en.wikipedia.org/wiki/Natural_language_processing) and [Vectors](https://en.wikipedia.org/wiki/Vector_space) on [Wikipedia](https://en.wikipedia.org/))
 
-### 1. Vocabulary, Word2Index and Index2Word
+### 1. Training Data - Vocabulary, Word2Index and Index2Word
 
 This phase of the training process allows to map words to numerical indexes.  
 The text goes through a tokenization process, then the identifiers are extracted and organized.
@@ -49,7 +49,7 @@ def build_i2w_dict(w2i: dict[str, int]) -> dict[int, str]:
     return i2w
 ```
 
-### 2. Contiguous Pairs
+### 2. Traning Data - Contiguous Pairs
 
 This process extracts **contiguous words** in order to identify **recurring semantic patterns**.  
 The pairs are than converted in numerical indexes as **x -> target**, **y -> context**.
@@ -69,12 +69,12 @@ for target, context in pairs:
         y.append(c_idx)
 ```
 
-### 3. Model Parameters
+### 3. Training Data - Model Parameters
 
-At this point, model parameters such as the **embedding size**, should be defined.  
-In this example we'll be using 1024 as **embedding size**.
+At this point, model parameters such as the **embeddingsize**, the **learning rate** and the number of **epochs** should be defined.  
+In this example we'll be using 1024 as **embedding size**, 0.05 as **learning rate** e 10 **epochs**.
 
-### 4. Embedding Matrix
+### 4. Training Data - Embedding Matrix
 
 The **embedding matrix** or **w1** is a `[vocab_size][embedding_dim]` matrix used to retrieve the embedding of a given input word (target).  
 Each row `w1[i]` represents the embedding vector of the word with index i in the vocabulary.
@@ -100,7 +100,7 @@ for word_index in range(vocab_size):
     w1.append(mbd_vector)
 ```
 
-### 5. Output Projection Matrix
+### 5. Training Data - Output Projection Matrix
 
 The **output projection matrix** is a `[embedding_dim][vocab_size]` matrix used to transform the embedding vector into a probability distribution over all words.  
 Each column `w2[:,i]` represents the output vector associated with the word at index i.  
@@ -134,61 +134,5 @@ for dimension in range(embedding_dim):
 The training process can be simplified into the following steps:  
 (For each (target, context) pair)
 
-1. Retrieves the embedding vector of the target word from w1.
-2. Projects this vector to the output space using w2.
-3. Computes the softmax distribution (predicted context probabilities).
-4. Calculates the error between prediction and actual context word.
-5. Updates both w2 (output projection) and w1 (embedding) using gradient descent.
-6. Accumulates the cross-entropy loss for reporting.
-
-```python
-for epoch in range(epochs):
-    total_loss: float = 0.0
-
-    for i in range(len(x)):
-        target_idx: int = x[i]  # The center word index (target)
-        context_idx: int = y[i] # The surrounding word index (context)
-
-        # 1. Gets embedding vector of the target word from w1.
-        v: list[float] = w1[target_idx]
-
-        # 2. Projects v into vocabulary space by computing dot product with w2.
-        #    z[i] will be the unnormalized logit for word i.
-        z: list[float] = []
-        for i_vocab in range(vocab_size):
-            dot: float = 0.0
-            for d in range(embedding_dim):
-                dot += w2[d][i_vocab] * v[d]
-
-            z.append(dot)
-
-        # 3. Applies softmax to get predicted probability distribution.
-        y_pred: list[float] = softmax(z)
-
-        # 4. Computes the error vector.
-        #    The true label is a one-hot vector where only context_idx is 1.
-        error: list[float] = [p for p in y_pred]
-        error[context_idx] -= 1.0
-
-        # 5. Update w2 (output projection matrix).
-        #    Using gradient: dL/dw2[d][i_vocab] = error[i_vocab] * v[d].
-        for d in range(embedding_dim):
-            for i_vocab in range(vocab_size):
-                gradient: float = error[i_vocab] * v[d]
-                w2[d][i_vocab] -= learning_rate * gradient
-
-        # 6. Update w1 (embedding matrix).
-        #    Using gradient: dL/dw1[target_idx][d] = sum(error[i_vocab] * w2[d][i_vocab]).
-        for d in range(embedding_dim):
-            grad: float = 0.0
-            for i_vocab in range(vocab_size):
-                grad += error[i_vocab] * w2[d][i_vocab]
-
-            w1[target_idx][d] -= learning_rate * grad
-
-        # 7. Compute loss for monitoring.
-        #    Cross-entropy loss for the predicted probability of the actual context word.
-        loss: float = -math.log(y_pred[context_idx] + 1e-10)  # <- Avoids log(0)
-        total_loss += loss
-```
+...
 

@@ -72,7 +72,7 @@ for target, context in pairs:
 ### 3. Training Data - Model Parameters
 
 At this point, model parameters such as the **embeddingsize**, the **learning rate** and the number of **epochs** should be defined.  
-In this example we'll be using 768 as **embedding size**, 0.05 as **learning rate** and 100 **epochs**.
+In this example we'll be using 768 as **embedding size**, 0.025 as **learning rate** and 100 **epochs**.
 
 ### 4. Training Data - Embedding Matrix
 
@@ -132,7 +132,83 @@ for dimension in range(embedding_dim):
 ### 6. Model Training
 
 The training process can be simplified into the following steps:  
-(For each (target, context) pair)
+(For each `[target, context]` pair)
 
-...
+- Embedding retrival
+Looks for the embedding vector `v` of the target word from the input weight matrix `w1`.
+
+```python
+v: list[float] = w1[target_idx]
+```
+
+- Dot Product
+Projects `v` into the vocabulary space using the **dot product** function with each output vector in `w2`.  
+(More on [Doc Product](https://en.wikipedia.org/wiki/Dot_product) on [Wikipedia](https://en.wikipedia.org))
+
+```python
+z: list[float] = []
+for i_vocab in range(vocab_size):
+    dot: float = 0.0
+    for d in range(embedding_dim):
+        dot += w2[d][i_vocab] * v[d]
+    z.append(dot)
+```
+
+- Softmax Prediction
+Converts the logits `z` into a probability distribution over the vocabulary.  
+(More on [Softmax](https://en.wikipedia.org/wiki/Softmax_function) on [Wikipedia](https://en.wikipedia.org))
+
+```python
+y_pred: list[float] = softmax(z)
+```
+
+- Error Vector
+Subtracts 1.0 from the true context index to create the error vector (ŷ - y).
+
+```python
+error: list[float] = [p for p in y_pred]
+error[context_idx] -= 1.0
+```
+
+- Gradient Update
+Updates both matrices `w1` and `w2` using the calculated error.  
+A thread `lock` ensures safe updates across multiple threads (**race conditions** protection).  
+(More on [Race Condition](https://en.wikipedia.org/wiki/Race_condition) on [Wikipedia](https://en.wikipedia.org))
+
+```python
+with lock:
+    for d in range(embedding_dim):
+        for i_vocab in range(vocab_size):
+            gradient: float = error[i_vocab] * v[d]
+            w2[d][i_vocab] -= learning_rate * gradient
+
+    for d in range(embedding_dim):
+        grad: float = 0.0
+        for i_vocab in range(vocab_size):
+            grad += error[i_vocab] * w2[d][i_vocab]
+
+        w1[target_idx][d] -= learning_rate * grad
+```
+
+- Loss Computation
+Cross-entropy loss for monitoring convergence.
+
+```python
+loss: float = -math.log(y_pred[context_idx] + 1e-10)
+```
+
+### Parallelization
+
+The example uses a thread pool to run `train_pair(i)` in parallel over all training pairs.  
+The total loss is aggregated after each epoch.
+
+```python
+for epoch in range(epochs):
+    total_loss: float = 0.0
+    with ThreadPoolExecutor(max_workers = 16) as executor:
+        losses = list(executor.map(train_pair, range(len(x))))
+
+    total_loss = sum(losses)
+    print(f"[{epoch + 1}/{epochs}] - loss: {total_loss:.4f}")
+```
 

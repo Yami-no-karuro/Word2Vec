@@ -73,7 +73,7 @@ for target, context in pairs:
 
 vocab_size: int = len(vocab)
 embedding_dim: int = 768
-learning_rate: float = 0.05
+learning_rate: float = 0.025
 epochs: int = 100
 
 # 4. Embedding matrix.
@@ -176,7 +176,7 @@ def train_pair(i: int) -> float:
 
 for epoch in range(epochs):
     total_loss: float = 0.0
-    with ThreadPoolExecutor(max_workers = 8) as executor:
+    with ThreadPoolExecutor(max_workers = 16) as executor:
         losses = list(executor.map(train_pair, range(len(x))))
 
     total_loss = sum(losses)

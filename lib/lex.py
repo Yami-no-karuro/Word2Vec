@@ -21,11 +21,20 @@ def build_i2w_dict(w2i: dict[str, int]) -> dict[int, str]:
 
     return i2w
 
-def get_contiguous_pairs(identifiers: list[str]) -> set[tuple[str, str]]:
+def get_contiguous_pairs(identifiers: list[str], window_size: int = 2) -> set[tuple[str, str]]:
     pairs: set[tuple[str, str]] = set()
-    for idx, _ in enumerate(identifiers):
-        if idx > 0 and idx < len(identifiers) - 1:
-            pairs.add((identifiers[idx - 1], identifiers[idx]))
-            pairs.add((identifiers[idx], identifiers[idx + 1]))
+    length: int = len(identifiers)
+
+    for idx in range(length):
+        target: str = identifiers[idx]
+        for offset in range(1, window_size + 1):
+            left_idx: int = idx - offset
+            right_idx: int = idx + offset
+
+            if left_idx >= 0:
+                pairs.add((target, identifiers[left_idx]))
+            if right_idx < length:
+                pairs.add((target, identifiers[right_idx]))
 
     return pairs
+

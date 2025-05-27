@@ -174,7 +174,6 @@ def train_pair(i: int) -> float:
     loss: float = -math.log(y_pred[context_idx] + 1e-10)
     return loss
 
-print("Starting training iterations...")
 for epoch in range(epochs):
     total_loss: float = 0.0
     with ThreadPoolExecutor(max_workers = 8) as executor:
@@ -183,7 +182,6 @@ for epoch in range(epochs):
     total_loss = sum(losses)
     print(f"[{epoch + 1}/{epochs}] - loss: {total_loss:.4f}")
 
-print("Traning completed...")
 dump_model("models/model.pkl", {
     "w1": w1,
     "w2": w2,

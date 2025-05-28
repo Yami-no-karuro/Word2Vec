@@ -73,7 +73,7 @@ for target, context in pairs:
 
 vocab_size: int = len(vocab)
 embedding_dim: int = 256
-learning_rate: float = 0.005
+learning_rate: float = 0.025
 epochs: int = 100
 
 # 4. Embedding matrix.

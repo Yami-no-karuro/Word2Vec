@@ -4,7 +4,7 @@ from lib.embedder import get_word_embedding
 
 model: dict = load_model("models/model.pkl")
 
-print("=== Word Similarity ===")
+print("=== Words semantic distance ===")
 print("(Type \"exit\" or \"CTRL + C\" to stop the program)")
 
 while True:

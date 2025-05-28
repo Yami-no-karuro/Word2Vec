@@ -4,7 +4,7 @@ from lib.embedder import get_sentence_embedding
 
 model: dict = load_model("models/model.pkl")
 
-print("=== Sentence Similarity ===")
+print("=== Sentence semantic distance ===")
 print("(Type \"exit\" or \"CTRL + C\" to stop the program)")
 
 while True:

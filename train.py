@@ -35,7 +35,7 @@ embedding_dim: int = 256
 learning_rate: float = 0.0025
 
 # The number of epochs.
-epochs: int = 250
+epochs: int = 500
 
 # ====
 # Training Data

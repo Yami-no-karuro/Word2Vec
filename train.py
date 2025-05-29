@@ -32,10 +32,10 @@ min_idf_freq: int = 2
 embedding_dim: int = 256
 
 # The model learning rate.
-learning_rate: float = 0.005
+learning_rate: float = 0.0025
 
 # The number of epochs.
-epochs: int = 250
+epochs: int = 850
 
 # ====
 # Training Data

@@ -22,6 +22,22 @@ import pickle
 import re
 
 # ====
+# Configuration
+# ====
+
+# The number of times an identifier must appear in the vocabulary to be considered valid.
+min_idf_freq: int = 2
+
+# The dimension of the output embedding vector.
+embedding_dim: int = 256
+
+# The model learning rate.
+learning_rate: float = 0.005
+
+# The number of epochs.
+epochs: int = 250
+
+# ====
 # Training Data
 # ====
 
@@ -45,10 +61,9 @@ tokens: list[Token] = get_tokens(input)
 raw_identifiers: list[str] = get_identifiers(tokens)
 frequency_map: dict[str, int] = build_frequency_map(raw_identifiers)
 
-min_freq: int = 2
 identifiers: list[str] = []
 for word in raw_identifiers:
-    if frequency_map[word] >= min_freq:
+    if frequency_map[word] >= min_idf_freq:
         identifiers.append(word)
     else:
         identifiers.append("<unknown>")
@@ -82,13 +97,10 @@ for target, context in pairs:
         c_idx: int = w2i[context]
         y.append(c_idx)
 
-# 3. Model parameters.
-# The embedding size and the vocabulary size are configured.
+# 3. Vocabulary Size.
+# The vocabulary size is calculated.
 
 vocab_size: int = len(vocab)
-embedding_dim: int = 256
-learning_rate: float = 0.005
-epochs: int = 250
 
 # 4. Embedding matrix.
 # The "Embedding Matrix" or "w1" is a [vocab_size][embedding_dim] matrix used to retrieve the embedding of a given input word (target).
@@ -206,5 +218,5 @@ dump_model("models/model.pkl", {
 })
 
 end = time.time()
-print(f"Training completed in {end - start:.2f} seconds.")
+print(f"Completed in {end - start:.2f} seconds.")
 

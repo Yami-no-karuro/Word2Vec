@@ -69,10 +69,13 @@ for target, context in pairs:
         y.append(c_idx)
 ```
 
-### 3. Training Data - Model Parameters
+### 3. Training Data - Vocabulary Size
 
-At this point, model parameters such as the **embeddingsize**, the **learning rate** and the number of **epochs** should be defined.  
-In this example we'll be using 256 as **embedding size**, 0.025 as **learning rate** and 100 **epochs**.
+At this point the vocabulary size is extracted.
+
+```python
+vocab_size: int = len(vocab)
+```
 
 ### 4. Training Data - Embedding Matrix
 

@@ -8,12 +8,14 @@ from lib.tokenizer import Token
 from lib.tokenizer import get_tokens
 from lib.tokenizer import get_identifiers
 
+from lib.lex import build_frequency_map
 from lib.lex import build_vocabulary
 from lib.lex import build_w2i_dict
 from lib.lex import build_i2w_dict
 from lib.lex import get_contiguous_pairs
 
 import threading
+import time
 import math
 import random
 import pickle
@@ -35,12 +37,24 @@ import re
 # - w2i:           {("il": 0), ("romanzo": 1), ...}
 # - i2w:           {(0: "in"), (1: "romanzo"), ...}
 
+start = time.time()
 with open("source/corpus.txt", "r", encoding = "utf-8") as file:
     input: str = file.read()
 
 tokens: list[Token] = get_tokens(input)
-identifiers: list[str] = get_identifiers(tokens)
-identifiers.append("<unknown>")
+raw_identifiers: list[str] = get_identifiers(tokens)
+frequency_map: dict[str, int] = build_frequency_map(raw_identifiers)
+
+min_freq: int = 2
+identifiers: list[str] = []
+for word in raw_identifiers:
+    if frequency_map[word] >= min_freq:
+        identifiers.append(word)
+    else:
+        identifiers.append("<unknown>")
+
+if "<unknown>" not in identifiers:
+    identifiers.append("<unknown>")
 
 vocab: list[str] = build_vocabulary(identifiers)
 w2i: dict[str, int] = build_w2i_dict(vocab)
@@ -73,8 +87,8 @@ for target, context in pairs:
 
 vocab_size: int = len(vocab)
 embedding_dim: int = 256
-learning_rate: float = 0.025
-epochs: int = 100
+learning_rate: float = 0.005
+epochs: int = 250
 
 # 4. Embedding matrix.
 # The "Embedding Matrix" or "w1" is a [vocab_size][embedding_dim] matrix used to retrieve the embedding of a given input word (target).
@@ -190,4 +204,7 @@ dump_model("models/model.pkl", {
     "i2w": i2w,
     "vocab": vocab
 })
+
+end = time.time()
+print(f"Training completed in {end - start:.2f} seconds.")
 
